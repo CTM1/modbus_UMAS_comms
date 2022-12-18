@@ -2,6 +2,8 @@
 # Read ID, Read Card Info, Initialize Download, Download Block, End Strategy Download, Upload Block
 import scapy
 import argparse
+import messages
+import sys
 
 def print_banner():
     END = '\001\033[0m\002'
@@ -35,15 +37,6 @@ def print_banner():
     print(f"   {''.join(final)}")
     print(f'{END}2600 - krkn')
 
-def cli():
-    print_banner()                            
-    p = optparse.OptionParser(description='UMAS CLI',
-                              prog='comm_umas', version='0.1', usage='usage: comm_umas.py <PLC_ip>:<port>')
-
-def communicate():
-    function_code = 0x5a
-
-
 def connect_plc(dst_ip: str, port: str):
     print("[*] Setting up socket")
     plc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,39 +48,18 @@ def connect_plc(dst_ip: str, port: str):
         print("[+] Connected !")
     except Exception as e:
         print("[-] Connection failed: {}", e)
-
-#                        Data MUST be a HEX string
-def send_umas_packet(sock, data: str, request_type="default"):
-
-    # A Modbus "frame" consists of an Application Data Unit (ADU), 
-    # which encapsulates a Protocol Data Unit (PDU)
-    # ADU = Address + PDU + Error check.
-    # PDU = Function code + Data.
-
-    print("[*] Sending {} request data ...", request_type)
-    try: 
-        data = bytes.fromhex(data)
-        print("[+] Packet sent!")
-    except Exception as e:
-        print("[-] Invalid data string passed to send_umas_packet: {}", e)
-
-    #                             Data len + function code
-    adu = ModbusADURequest(len = len(data) + 1, unitId=unit_id)
-
-    # Make TCP/IP packet
-    packet = adu/data
-
-    s.send(bytes(packet))
-
-    print("[*] Receiving {} request response ...", request_type)
-
-    try:
-        response = s.recv(512)
-        print("[+] Request response successfully received")
-    except Exception as e:
-        print("[-] Failed to receive request response properly: {}", e)
-
-    return response
+        return None
+    
+    return s
 
 if __name__ == '__main__':
+    data_fix = True
     print_banner()
+    
+    if len(sys.argv) < 2:
+        print("Usage: comm_umas.py <PLC_ip>:<port>")
+        exit(0)
+
+    addr = sys.argv.split(':')
+    plc_sock = connect_plc(addr[0], addr[1])
+    messages.init_comms(plc_sock)
