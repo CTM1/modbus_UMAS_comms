@@ -1,17 +1,42 @@
 # Read PLC info, Monitor PLC, Check PLC, Keep Alive, Read Memory block, Stop PLC, Read Project Info
 # Read ID, Read Card Info, Initialize Download, Download Block, End Strategy Download, Upload Block
 import scapy
-import optparse
+import argparse
 
-# Here are some important variables concerning the UMAS ADU
+def print_banner():
+    END = '\001\033[0m\002'
 
-FUNC_ID = 0x5a # UMAS protocol
+    U = "╔╗ ╔╗╔═╗╔═╗╔═══╗╔═══╗    ╔═══╗╔╗   ╔══╗"
+    M = "║║ ║║║║╚╝║║║╔═╗║║╔═╗║    ║╔═╗║║║   ╚╣╠╝"
+    A = "║║ ║║║╔╗╔╗║║║ ║║║╚══╗    ║║ ╚╝║║    ║║ "
+    S = "║║ ║║║║║║║║║╚═╝║╚══╗║    ║║ ╔╗║║ ╔╗ ║║ "
+    C = "║╚═╝║║║║║║║║╔═╗║║╚═╝║    ║╚═╝║║╚═╝║╔╣╠╗"
+    L = "╚═══╝╚╝╚╝╚╝╚╝ ╚╝╚═══╝    ╚═══╝╚═══╝╚══╝"
 
-unit_id = 0x00 # When not used, it's 0xff by default.
-transaction_id = 0x00 # Give this (ID of the last request you sent + 1), if you don't know, leave as is.
-# transaction_id = 0xDBF8
+    banner = [U,M,A,S,C,L]
+    init_color = 28
+    txt_color = init_color
+    cl = 0
+    final = []
+
+    for charset in range(0, 6):
+        for pos in range(0, len(banner[charset])):
+                clr = f'\033[38;5;{txt_color}m'
+                char = f'{clr}{banner[charset][pos]}'
+                final.append(char)
+                cl += 1
+
+        cl = 0
+        txt_color = init_color
+        init_color += 1
+
+        final.append('\n   ')
+
+    print(f"   {''.join(final)}")
+    print(f'{END}2600 - krkn')
 
 def cli():
+    print_banner()                            
     p = optparse.OptionParser(description='UMAS CLI',
                               prog='comm_umas', version='0.1', usage='usage: comm_umas.py <PLC_ip>:<port>')
 
@@ -32,7 +57,7 @@ def connect_plc(dst_ip: str, port: str):
         print("[-] Connection failed: {}", e)
 
 #                        Data MUST be a HEX string
-def send_umas_packet(s: socket, data: str, request_type="default"):
+def send_umas_packet(sock, data: str, request_type="default"):
 
     # A Modbus "frame" consists of an Application Data Unit (ADU), 
     # which encapsulates a Protocol Data Unit (PDU)
@@ -64,5 +89,5 @@ def send_umas_packet(s: socket, data: str, request_type="default"):
 
     return response
 
-if __name___ = '__main__':
-    main()
+if __name__ == '__main__':
+    print_banner()
