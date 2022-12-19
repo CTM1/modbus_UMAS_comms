@@ -3,6 +3,7 @@
 import scapy
 import argparse
 import messages
+import umas_parser
 import sys
 
 def print_banner():
@@ -55,11 +56,13 @@ def connect_plc(dst_ip: str, port: str):
 if __name__ == '__main__':
     data_fix = True
     print_banner()
-    
-    if len(sys.argv) < 2:
-        print("Usage: comm_umas.py <PLC_ip>:<port>")
-        exit(0)
+    print()
 
-    addr = sys.argv.split(':')
-    plc_sock = connect_plc(addr[0], addr[1])
-    messages.init_comms(plc_sock)
+    print("comm_umas.py <PLC_ip>:<port> for network connection")
+    print("comm_umas.py --pcap <filename> for parsing a .pcap for UMAS requests")
+
+    if sys.argv[1] == '--pcap':
+        queries, responses = umas_parser.parse_pcap(sys.argv[2])
+    else:
+        addr = sys.argv.split(':')
+        plc_sock = connect_plc(addr[0], addr[1])
