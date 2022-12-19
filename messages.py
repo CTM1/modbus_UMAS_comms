@@ -1,19 +1,53 @@
-# Set this to True in main() in case you'd like to pad the request with data
+# Set this to True in main() in case you'd like to pad the request with a 
+# session key or PLC ID
 global data_fix
-prefix = '525015'
-suffix = ''
+session_key = '525015'
 
-FUNC_ID = '5a' # UMAS protocol
+FUNC_ID = '5a' # UMAS
+
+protocol_list = [
+    [0,  '0001', 'INIT_COMM'],
+    [1,  '0002', 'READ_ID'],
+    [2,  '0003', 'READ_PROJECT_INFO'],
+    [3,  '0004', 'READ_PLC_INFO'],
+    [4,  '0006', 'READ_CARD_INFO'],
+    [5,  '000A', 'REPEAT'],
+    [6,  '0010', 'TAKE_PLC_RESERVATION'],
+    [7,  '0011', 'RELEASE_PLC_RESERVATION'],
+    [8,  '0012', 'KEEP_ALIVE'],
+    [9,  '0020', 'READ_MEMORY_BLOCK '],
+    [10, '0022', 'READ_VARIABLES'],
+    [11, '0023', 'WRITE_VARIABLES'],
+    [12, '0024', 'READ_COILS_REGISTERS'],
+    [13, '0025', 'WRITE_COILS_REGISTERS '],
+    [14, '0030', 'INITIALIZE_UPLOAD'],
+    [15, '0031', 'UPLOAD_BLOCK'],
+    [16, '0032', 'END_STRATEGY_UPLOAD'],
+    [17, '0033', 'INITIALIZE_UPLOAD'],
+    [18, '0034', 'DOWNLOAD_BLOCK'],
+    [19, '0035', 'END_STRATEGY_DOWNLOAD'],
+    [20, '0039', 'READ_ETH_MASTER_DATA'],
+    [21, '0040', 'START_PLC'],
+    [22, '0041', 'STOP_PLC'],
+    [23, '0050', 'MONITOR_PLC'],
+    [24, '0058', 'CHECK_PLC'],
+    [25, '0070', 'READ_IO_OBJECT'],
+    [26, '0071', 'WRITE_IO_OBJECT'],
+    [27, '0073', 'GET_STATUS_MODULE']
+]
 
 # data MUST be a HEX string
-def send_umas_packet(sock, data: str, request_type="default"):
-
+def send_umas_packet(sock, request_id,  message_data=''):
+    if data_fix:
+        data = (FUNC_ID + session_key + protocol_list[request_id][1] + message_data)
+    else:
+        data = (FUNC_ID + protocol_list[request_id][1])
     # A Modbus "frame" consists of an Application Data Unit (ADU), 
     # which encapsulates a Protocol Data Unit (PDU)
     # ADU = Address + PDU + Error check.
     # PDU = Function code + Data.
 
-    print("[*] Sending {} request data ...", request_type)
+    print("[*] Sending {} request data ...", protocol_list[request_id][2])
     try: 
         data = bytes.fromhex(data)
         print("[+] Packet sent!")
@@ -28,7 +62,7 @@ def send_umas_packet(sock, data: str, request_type="default"):
 
     s.send(bytes(packet))
 
-    print("[*] Receiving {} request response ...", request_type)
+    print("[*] Receiving {} request response ...", request_id)
 
     try:
         response = s.recv(512)
@@ -37,24 +71,3 @@ def send_umas_packet(sock, data: str, request_type="default"):
         print("[-] Failed to receive request response properly: {}", e)
 
     return response
-
-def init_comms(sock):
-    if data_fix:
-        req_data = (FUNC_ID + prefix + '0001' + suffix)
-    else:
-        req_data = (FUNC_ID + '0001')
-
-    res_data = send_umas_packet(sock, req_dat, "init_comms - 0x0001")
-
-    print(res_data)
-
-def read_plc_info(sock):
-    response = {}
-    if data_fix: 
-        req_data = (FUNC_ID + prefix + '0004' + suffix) 
-    else:
-        req_data = (FUNC_ID + '0004')
-    
-    res_data = send_umas_packet(sock, req_data)
-
-    print(res_data)
