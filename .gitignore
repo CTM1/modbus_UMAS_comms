@@ -130,3 +130,6 @@ dmypy.json
 
 # Project pdf
 sujet.pdf
+
+# Pcaps
+pcaps/
