@@ -65,7 +65,7 @@ def send_umas_packet(sock, request_id,  message_data=''):
     print("[*] Receiving {} request response ...", request_id)
 
     try:
-        response = s.recv(512)
+        response = s.recv(1024)
         print("[+] Request response successfully received")
     except Exception as e:
         print("[-] Failed to receive request response properly: {}", e)

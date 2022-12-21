@@ -2,8 +2,8 @@
 # Read ID, Read Card Info, Initialize Download, Download Block, End Strategy Download, Upload Block
 import scapy
 import argparse
-import messages
-import umas_parser
+import comm_messages
+import parser_umas
 import sys
 
 def print_banner():
@@ -62,7 +62,8 @@ if __name__ == '__main__':
     print("comm_umas.py --pcap <filename> for parsing a .pcap for UMAS requests")
 
     if sys.argv[1] == '--pcap':
-        queries, responses = umas_parser.parse_pcap(sys.argv[2])
+        queries, responses = parser_umas.parse_pcap(sys.argv[2])
+        parser_umas.print_responses(responses)
     else:
         addr = sys.argv.split(':')
         plc_sock = connect_plc(addr[0], addr[1])
