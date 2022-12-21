@@ -1,6 +1,9 @@
+from scapy.all import *
+import scapy.contrib.modbus as mb
 # Set this to True in main() in case you'd like to pad the request with a 
 # session key or PLC ID
 global data_fix
+data_fix = True
 session_key = '525015'
 
 FUNC_ID = '5a' # UMAS
@@ -55,17 +58,18 @@ def send_umas_packet(sock, request_id,  message_data=''):
         print("[-] Invalid data string passed to send_umas_packet: {}", e)
 
     #                             Data len + function code
-    adu = ModbusADURequest(len = len(data) + 1, unitId=unit_id)
+    adu = mb.ModbusADURequest(len = len(data) + 1)
 
     # Make TCP/IP packet
     packet = adu/data
 
-    s.send(bytes(packet))
+    print("[+] Sending packet: " + str(bytes(packet)))
+    sock.send(bytes(packet))
 
-    print("[*] Receiving {} request response ...", request_id)
+    print("[*] Receiving request response " + str(request_id))
 
     try:
-        response = s.recv(1024)
+        response = sock.recv(1024)
         print("[+] Request response successfully received")
     except Exception as e:
         print("[-] Failed to receive request response properly: {}", e)

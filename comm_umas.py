@@ -1,6 +1,7 @@
 # Read PLC info, Monitor PLC, Check PLC, Keep Alive, Read Memory block, Stop PLC, Read Project Info
 # Read ID, Read Card Info, Initialize Download, Download Block, End Strategy Download, Upload Block
 import scapy
+import socket
 import argparse
 import comm_messages
 import parser_umas
@@ -42,19 +43,20 @@ def connect_plc(dst_ip: str, port: str):
     print("[*] Setting up socket")
     plc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    print("[*] Connecting to PLC at {}:{} ...", dst_ip, port)
+    print("[*] Connecting to PLC at ", dst_ip, port)
     
     try: 
-        s.connect(dst_ip, port)
+        plc_sock.connect((dst_ip, int(port)))
         print("[+] Connected !")
     except Exception as e:
-        print("[-] Connection failed: {}", e)
+        print("[-] Connection failed: ")
+        print(e)
+        exit(0)
         return None
     
-    return s
+    return plc_sock
 
 if __name__ == '__main__':
-    data_fix = True
     print_banner()
     print()
 
@@ -65,5 +67,17 @@ if __name__ == '__main__':
         queries, responses = parser_umas.parse_pcap(sys.argv[2])
         parser_umas.print_responses(responses)
     else:
-        addr = sys.argv.split(':')
+        addr = sys.argv[1].split(':')
         plc_sock = connect_plc(addr[0], addr[1])
+        print("Type 'help' for a list of requests")
+        while True:
+            print(">>> ", end='')
+            cmd = input()
+            if cmd == 'help':
+                print(*comm_messages.protocol_list, sep='\n')
+            else:
+                try:
+                    comm_messages.send_umas_packet(plc_sock, int(cmd))
+                except Exception as e:
+                    print("Invalid parameter: ")
+                    print(e)
